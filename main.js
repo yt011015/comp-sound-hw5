@@ -4,6 +4,8 @@ var osc;
 var timings;
 var liveCodeState = [];
 const playButton = document.querySelector('button');
+var notes;
+var prevNotes;
 
 function initAudio() {
     audioCtx = new (window.AudioContext || window.webkitAudioContext)
@@ -28,22 +30,61 @@ function scheduleAudio() {
 }
 
 function parseCode(code) {
-    //how could we allow for a repeat operation 
-    //(e.g. "3@340 2[1@220 2@330]"" plays as "3@340 1@220 2@330 1@220 2@330")
-    //how could we allow for two lines that play at the same time?
-    //what if we want variables?
-    //how does this parsing technique limit us?
-    let notes = code.split(" ");
+    if (code == "") {
+        return "NO_INPUT";
+    }
+    let tokens = [];
+    let bracketOpen = false;
+    let token = "";
 
-    //notice this will fail if the input is not correct
-    //how could you handle this? allow some flexibility in the grammar? fail gracefully?
-    //ideally (probably), the music does not stop
-    notes = notes.map(note => {
-        noteData = note.split("@");
-        return   {"length" : eval(noteData[0]), //the 'eval' function allows us to write js code in our live coding language
-                "pitch" : eval(noteData[1])};
-                //what other things should be controlled? osc type? synthesis technique?
-    });
+    for (let char of code) {
+        if (char == " " && !bracketOpen) {
+            tokens.push(token);
+            token = "";
+        } else if (char == " " && bracketOpen) {
+            token += char;
+        } else if (char == "[") {
+            bracketOpen = true;
+            token += char;
+
+        } else if (char == "]") {
+            bracketOpen = false;
+            token += char;
+        } else {
+            token += char;
+        }
+    }
+    tokens.push(token);
+    prevNotes = notes;
+
+    try {
+        notes = parseBrackets(tokens);
+        notes = notes.map(note => {
+            noteData = note.split("@");
+            return   {"length" : eval(noteData[0]),
+                    "pitch" : eval(noteData[1])};
+        });
+        console.log(notes);
+    } catch (error) {
+        console.log("Parsing Error:", error.message);
+        notes = prevNotes;
+    }
+    return notes;
+}
+
+function parseBrackets(tokens) {
+    let notes = [];
+    const regex = /^(.*?)\[(.*?)\]/;
+    for (let t of tokens) {
+        let match = t.match(regex);
+        if (match != null) {
+            for (let i = 0; i < eval(match[1]); i ++) {
+                notes.push(...match[2].split(" "));
+            }
+        } else {
+            notes.push(t);
+        }
+    }
     return notes;
 }
 
@@ -52,9 +93,13 @@ function genAudio(data) {
 }
 
 function reevaluate() {
-    var code = document.getElementById('code').value;
+    var code = document.getElementById('code').value.trim();
     var data = parseCode(code);
-    genAudio(data);
+    if (data == "NO_INPUT") {
+        console.log("No Input Error: Please input code.");
+    } else if (data != null) {
+        genAudio(data);
+    }
 }
 
 playButton.addEventListener('click', function () {

@@ -7,12 +7,27 @@
 </head>
 
 <body>
-  <p>This is an almost minimal command-based live coding engine. Press the button to re-evaluate your code.
-    This language allows you to specify a rhythmic pattern of beats by entering a space-separated list of times and pitches. 
+  <p>
+    This is an almost minimal command-based live coding engine. Press the button to re-evaluate your code. <br>
+    This language allows you to specify a rhythmic pattern of beats by entering a space-separated list of times and pitches.<br>
     You can also include javascript computation in the values.
     As an example:
   </p>
+
   <p>1+1@220 2@220*2 1*3@270</p>
+
+  <p>
+    New Feature: Repeat Operation <br>
+    You can now use brackets to indicate repetition of certain segments in your code. <br>
+  </p>
+
+  <p> 3@340 2[1@220 2@330] = 3@340 1@220 2@330 1@220 2@330 </p>
+
+  <p>
+    Error handling <br>
+    If there is an error in parsing the code or there is no input provided, the previous notes will be played. <br>
+  </p>
+    
   <button>re-evaluate</button>
   <input type="text" id="code">
 </body>
