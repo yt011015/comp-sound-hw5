@@ -64,7 +64,6 @@ function parseCode(code) {
             return   {"length" : eval(noteData[0]),
                     "pitch" : eval(noteData[1])};
         });
-        console.log(notes);
     } catch (error) {
         console.log("Parsing Error:", error.message);
         notes = prevNotes;
